@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"github.com/martinlindhe/inputbox"
 	"regexp"
 	"strconv"
 	"time"
@@ -57,29 +57,43 @@ var (
 )
 
 func main() {
-	yearlySalary := 0
-	workingHours := emptyWorkingHours
+	a := app.New()
+	w := a.NewWindow("Payday motivator")
+	w.Resize(fyne.NewSize(300, 100))
 
-	for yearlySalary == 0 {
-		yearlySalary = inputSalary()
+	incomeInput := widget.NewEntry()
+	incomeInput.SetText("25000")
+	incomeInput.SetPlaceHolder(incomeInput.Text)
+
+	workingHoursInput := widget.NewEntry()
+	workingHoursInput.SetText("08:00-17:00")
+	workingHoursInput.SetPlaceHolder(workingHoursInput.Text)
+
+	configForm := widget.NewForm(
+		widget.NewFormItem("Yearly salary", incomeInput),
+		widget.NewFormItem("Working hours", workingHoursInput),
+	)
+
+	configForm.OnSubmit = func() {
+		yearlySalary := forceToInt(incomeInput.Text)
+		wh := parseWorkingHours(workingHoursInput.Text)
+
+		if wh != emptyWorkingHours && yearlySalary != 0 {
+			salary := calculateIncome(yearlySalary, wh)
+
+			startMotivation(salary, wh, func(todayEarned float32) {
+				incomeValue := widget.NewRichTextWithText(fmt.Sprintf("%.2f € Earned Today", todayEarned))
+				w.SetContent(container.NewVBox(incomeValue))
+			})
+		}
 	}
 
-	for workingHours == emptyWorkingHours {
-		workingHours = inputWorkingHours()
-	}
-
-	startMotivation(yearlySalary, workingHours)
+	w.SetContent(configForm)
+	w.Show()
+	a.Run()
 }
 
-func startMotivation(yearlySalary int, hours workingHours) {
-	salary := calculateIncome(yearlySalary, hours)
-
-	a := app.New()
-	w := a.NewWindow("Today income")
-
-	incomeLabel := widget.NewLabel("Today's income:")
-	w.SetContent(container.NewVBox(incomeLabel))
-
+func startMotivation(income salary, hours workingHours, motivator func(earnedToday float32)) {
 	ticker := time.NewTicker(time.Second)
 	quit := make(chan struct{})
 	go func() {
@@ -93,16 +107,17 @@ func startMotivation(yearlySalary int, hours workingHours) {
 				var todayEarned float32
 				if currentHour >= hours.from.hours {
 					totalSecondsWorked := 0
+					// Working day has ended
 					if currentHour >= hours.to.hours {
 						totalSecondsWorked = int(hours.totalWorkingHours() * 60 * 60)
 					} else {
+						// Working day has not yet started or is in progress
 						totalSecondsWorked = 60*((60*(currentHour-hours.from.hours))+currentMinute-hours.from.minutes) + currentSecond
 					}
 
-					todayEarned = float32(totalSecondsWorked) * salary.secondly
+					todayEarned = float32(totalSecondsWorked) * income.secondly
 				}
-				incomeValue := widget.NewRichTextWithText(fmt.Sprintf("%.1f € Earned Today", todayEarned))
-				w.SetContent(container.NewVBox(incomeValue))
+				motivator(todayEarned)
 			case <-quit:
 				ticker.Stop()
 
@@ -110,29 +125,12 @@ func startMotivation(yearlySalary int, hours workingHours) {
 			}
 		}
 	}()
-
-	w.ShowAndRun()
 }
 
-func inputSalary() int {
-	yearlySalary, ok := inputbox.InputBox("Configure income", "Yearly salary", "0")
-
-	if !ok {
-		return 0
-	}
-
-	return forceToInt(yearlySalary)
-}
-
-func inputWorkingHours() workingHours {
-	value, ok := inputbox.InputBox("Configure working hours", "Set interval", "08:00-17:00")
-	if !ok {
-		return emptyWorkingHours
-	}
-
+func parseWorkingHours(rawWorkingHours string) workingHours {
 	pattern := regexp.MustCompile("^([0-2][0-9]):([0-5][0-9])-([0-2][0-9]):([0-5][0-9])$")
 
-	vals := pattern.FindStringSubmatch(value)
+	vals := pattern.FindStringSubmatch(rawWorkingHours)
 	if vals == nil {
 		return emptyWorkingHours
 	}
