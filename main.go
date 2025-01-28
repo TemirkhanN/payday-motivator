@@ -29,21 +29,21 @@ func (wh workingHours) totalWorkingHours() float32 {
 }
 
 type salary struct {
-	yearly   int
+	annual   int
 	monthly  float32
 	daily    float32
 	hourly   float32
 	secondly float32
 }
 
-func calculateIncome(yearlySalary int, hours workingHours) salary {
-	monthlyIncome := float32(yearlySalary) / 12
+func calculateIncome(annualSalary int, hours workingHours) salary {
+	monthlyIncome := float32(annualSalary) / 12
 	dailyIncome := monthlyIncome / float32(averageWorkingDaysPerMonth)
 	hourlyIncome := dailyIncome / hours.totalWorkingHours()
 	secondly := hourlyIncome / 60 / 60
 
 	return salary{
-		yearly:   yearlySalary,
+		annual:   annualSalary,
 		monthly:  monthlyIncome,
 		daily:    dailyIncome,
 		hourly:   hourlyIncome,
@@ -69,20 +69,25 @@ func main() {
 	workingHoursInput.SetText("08:00-17:00")
 	workingHoursInput.SetPlaceHolder(workingHoursInput.Text)
 
+	currencyInput := widget.NewEntry()
+	currencyInput.SetText("€")
+	currencyInput.SetPlaceHolder(currencyInput.Text)
+
 	configForm := widget.NewForm(
-		widget.NewFormItem("Yearly salary", incomeInput),
+		widget.NewFormItem("Annual salary", incomeInput),
 		widget.NewFormItem("Working hours", workingHoursInput),
+		widget.NewFormItem("Currency", currencyInput),
 	)
 
 	configForm.OnSubmit = func() {
-		yearlySalary := forceToInt(incomeInput.Text)
+		annualSalary := forceToInt(incomeInput.Text)
 		wh := parseWorkingHours(workingHoursInput.Text)
 
-		if wh != emptyWorkingHours && yearlySalary != 0 {
-			salary := calculateIncome(yearlySalary, wh)
+		if wh != emptyWorkingHours && annualSalary != 0 {
+			salary := calculateIncome(annualSalary, wh)
 
 			startMotivation(salary, wh, func(todayEarned float32) {
-				incomeValue := widget.NewRichTextWithText(fmt.Sprintf("%.2f € Earned Today", todayEarned))
+				incomeValue := widget.NewRichTextWithText(fmt.Sprintf("%.2f %s Earned Today", todayEarned, currencyInput.Text))
 				w.SetContent(container.NewVBox(incomeValue))
 			})
 		}
