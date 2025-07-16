@@ -1,0 +1,28 @@
+#payday-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #222;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    z-index: 99999;
+    font-family: sans-serif;
+    font-size: 14px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+#payday-widget input, #payday-widget button {
+    margin-top: 5px;
+    display: block;
+    width: 100%;
+}
+
+#show-config {
+    cursor: pointer;
+    padding-left:5px;
+    font-size:1.2em;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}

@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Payday Motivator",
+  "version": "1.0",
+  "description": "Earn-tracker widget that keeps you motivated",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "permissions": ["storage"]
+}
