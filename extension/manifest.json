@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Payday Motivator",
   "version": "1.0",
-  "description": "Earn-tracker widget that keeps you motivated",
+  "description": "Calculates your per-second salary and shows it realtime as your working day goes. Helps keeping you motivated when you feel frustrated.",
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -10,5 +10,11 @@
       "css": ["styles.css"]
     }
   ],
-  "permissions": ["storage"]
+  "permissions": ["storage"],
+  "icons": {
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
 }
