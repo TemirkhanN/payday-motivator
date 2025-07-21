@@ -1,6 +1,6 @@
 #payday-widget {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
     background: #222;
     color: #fff;
@@ -16,6 +16,7 @@
     margin-top: 5px;
     display: block;
     width: 100%;
+    cursor: pointer;
 }
 
 #show-config {
